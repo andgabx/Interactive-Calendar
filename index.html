@@ -31,7 +31,7 @@
     </div>
     <div id="eventModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
         <div class="bg-white p-6 rounded-lg w-80">
-            <h2 class="text-lg font-semibold mb-4" id="modalDate">Dia</h2>
+            <h2 class="text-lg font-semibold mb-4 text-center" id="modalDate">Dia</h2>
             <div id="eventList" class="mb-4"></div>
             <button onclick="openAddEventModal()" class="w-full bg-blue-500 text-white py-2 rounded-md mb-2">Adicionar Atividade</button>
             <button onclick="closeModal()" class="w-full bg-gray-500 text-white py-2 rounded-md">Fechar</button>
@@ -39,7 +39,7 @@
     </div>
     <div id="addEventModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
         <div class="bg-white p-6 rounded-lg w-80">
-            <h2 class="text-lg font-semibold mb-4">Adicionar Nova Atividade</h2>
+            <h2 class="text-lg font-semibold mb-4 text-center">Adicionar Nova Atividade</h2>
             <form id="addEventForm" class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Nome da Atividade</label>
@@ -50,25 +50,28 @@
                     <div class="flex items-center mt-1 space-x-2">
                         <input type="date" id="eventEndDate" class="w-full p-2 border border-gray-300 rounded-md">
                         <label class="flex items-center space-x-2">
-                            <input type="checkbox" id="singleDay" class="form-checkbox h-5 w-5 text-blue-600">
-                            <span class="text-sm text-gray-700">Dia Único</span>
+                            <input type="checkbox" id="singleDay" class="form-checkbox h-9 w-9 text-blue-600">
+                            <span class="text-sm text-gray-700 font-medium">Dia Único</span>
                         </label>
                     </div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Cor da Atividade</label>
-                    <select id="eventColor" class="w-full mt-1 p-2 border border-gray-300 rounded-md">
-                        <option value="#FF5733" style="color: #FF5733;">Vermelho</option>
-                        <option value="#28A745" style="color: #28A745;">Verde</option>
-                        <option value="#007BFF" style="color: #007BFF;">Azul</option>
-                        <option value="#FFC107" style="color: #FFC107;">Amarelo</option>
-                        <option value="#6F42C1" style="color: #6F42C1;">Roxo</option>
-                        <option value="#17A2B8" style="color: #17A2B8;">Ciano</option>
-                        <option value="#FD7E14" style="color: #FD7E14;">Laranja</option>
-                        <option value="#e84393" style="color: #e84393;">Rosa</option>
-                        <option value="#8e44ad" style="color: #8e44ad;">Violeta</option>
-                        <option value="#34495e" style="color: #34495e;">Cinza</option>
-                    </select>
+                    <div id="colorOptions" class="flex space-x-2 mt-1">
+                        <!-- Cores com quadrados clicáveis -->
+                        <div class="color-square p-1 w-6 h-6 cursor-pointer rounded" data-color="#FF0000" style="background-color: #FF0000;"></div> <!-- Vermelho -->
+                        <div class="color-square p-1 w-6 h-6 cursor-pointer rounded" data-color="#FD7E14" style="background-color: #FD7E14;"></div> <!-- Laranja -->
+                        <div class="color-square p-1 w-6 h-6 cursor-pointer rounded" data-color="#FFC107" style="background-color: #FFC107;"></div> <!-- Amarelo -->
+                        <div class="color-square p-1 w-6 h-6 cursor-pointer rounded" data-color="#28A745" style="background-color: #28A745;"></div> <!-- Verde -->
+                        <div class="color-square p-1 w-6 h-6 cursor-pointer rounded" data-color="#007BFF" style="background-color: #007BFF;"></div> <!-- Azul -->
+                        <div class="color-square p-1 w-6 h-6 cursor-pointer rounded" data-color="#8A2BE2" style="background-color: #8A2BE2;"></div> <!-- Violeta -->
+                        <div class="color-square p-1 w-6 h-6 cursor-pointer rounded" data-color="#FF5733" style="background-color: #FF5733;"></div> <!-- Laranja Escuro -->
+                        <div class="color-square p-1 w-6 h-6 cursor-pointer rounded" data-color="#17A2B8" style="background-color: #17A2B8;"></div> <!-- Azul Claro -->
+                        <div class="color-square p-1 w-6 h-6 cursor-pointer rounded" data-color="#DA70D6" style="background-color: #DA70D6;"></div> <!-- Rosa -->
+                        <div class="color-square p-1 w-6 h-6 cursor-pointer rounded" data-color="#FFFF00" style="background-color: #FFFF00;"></div> <!-- Amarelo Brilhante -->
+                        
+                    </div>
+                    <input type="hidden" id="eventColor" value="#FF5733">
                 </div>
                 <div class="flex justify-end space-x-2">
                     <button type="button" onclick="closeAddEventModal()" class="bg-gray-500 text-white py-2 px-4 rounded-md">Cancelar</button>
@@ -89,6 +92,8 @@
         const addEventForm = document.getElementById('addEventForm');
         const singleDayCheckbox = document.getElementById('singleDay');
         const endDateInput = document.getElementById('eventEndDate');
+        const eventColorInput = document.getElementById('eventColor');
+        const colorOptions = document.querySelectorAll('.color-square');
 
         let currentDate = new Date();
         let events = [];
@@ -161,7 +166,7 @@
             eventList.innerHTML = '';
             const eventsForDate = events.filter(e => e.date === date);
             if (eventsForDate.length === 0) {
-                eventList.innerHTML = '<p class="text-gray-500">Nenhum evento para este dia.</p>';
+                eventList.innerHTML = '<p class="text-gray-500 text-center">Nenhum evento para este dia.</p>';
             } else {
                 eventsForDate.forEach(event => {
                     const eventItem = document.createElement('div');
@@ -176,7 +181,7 @@
             e.preventDefault();
             const description = document.getElementById('eventName').value;
             const endDateInputVal = endDateInput.value;
-            const color = document.getElementById('eventColor').value;
+            const color = eventColorInput.value;
             const singleDay = singleDayCheckbox.checked;
             const event = { date: selectedDate, description, color };
 
@@ -201,6 +206,7 @@
             currentDate.setMonth(currentDate.getMonth() - 1);
             loadCalendar();
         });
+
         nextMonthBtn.addEventListener('click', () => {
             currentDate.setMonth(currentDate.getMonth() + 1);
             loadCalendar();
@@ -214,6 +220,14 @@
                 endDateInput.disabled = false;
                 endDateInput.classList.remove('line-through', 'text-gray-400');
             }
+        });
+
+        colorOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                colorOptions.forEach(opt => opt.classList.remove('ring-2', 'ring-offset-2', 'ring-blue-500'));
+                option.classList.add('ring-2', 'ring-offset-2', 'ring-blue-500');
+                eventColorInput.value = option.getAttribute('data-color');
+            });
         });
 
         loadCalendar();
