@@ -47,7 +47,13 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Data Final</label>
-                    <input type="date" id="eventEndDate" class="w-full mt-1 p-2 border border-gray-300 rounded-md">
+                    <div class="flex items-center mt-1 space-x-2">
+                        <input type="date" id="eventEndDate" class="w-full p-2 border border-gray-300 rounded-md">
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" id="singleDay" class="form-checkbox h-5 w-5 text-blue-600">
+                            <span class="text-sm text-gray-700">Dia Único</span>
+                        </label>
+                    </div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Cor da Atividade</label>
@@ -59,6 +65,9 @@
                         <option value="#6F42C1" style="color: #6F42C1;">Roxo</option>
                         <option value="#17A2B8" style="color: #17A2B8;">Ciano</option>
                         <option value="#FD7E14" style="color: #FD7E14;">Laranja</option>
+                        <option value="#e84393" style="color: #e84393;">Rosa</option>
+                        <option value="#8e44ad" style="color: #8e44ad;">Violeta</option>
+                        <option value="#34495e" style="color: #34495e;">Cinza</option>
                     </select>
                 </div>
                 <div class="flex justify-end space-x-2">
@@ -78,18 +87,24 @@
         const modalDateDisplay = document.getElementById('modalDate');
         const eventList = document.getElementById('eventList');
         const addEventForm = document.getElementById('addEventForm');
+        const singleDayCheckbox = document.getElementById('singleDay');
+        const endDateInput = document.getElementById('eventEndDate');
+
         let currentDate = new Date();
         let events = [];
         let selectedDate = '';
+
         function formatDate(day, month, year) {
             const dayStr = day.toString().padStart(2, '0');
             const monthStr = (month + 1).toString().padStart(2, '0');
             return `${dayStr}/${monthStr}/${year}`;
         }
+
         function parseDateBrazilianFormat(dateString) {
             const [day, month, year] = dateString.split('/').map(Number);
             return new Date(year, month - 1, day, 12, 0, 0);
         }
+
         function loadCalendar() {
             calendarDaysContainer.innerHTML = '';
             const year = currentDate.getFullYear();
@@ -122,21 +137,26 @@
                 calendarDaysContainer.appendChild(dayCell);
             }
         }
+
         function openModal(date) {
             selectedDate = date;
             modalDateDisplay.textContent = `Eventos para ${date}`;
             displayEvents(date);
             eventModal.classList.remove('hidden');
         }
+
         function closeModal() {
             eventModal.classList.add('hidden');
         }
+
         function openAddEventModal() {
             addEventModal.classList.remove('hidden');
         }
+
         function closeAddEventModal() {
             addEventModal.classList.add('hidden');
         }
+
         function displayEvents(date) {
             eventList.innerHTML = '';
             const eventsForDate = events.filter(e => e.date === date);
@@ -151,14 +171,17 @@
                 });
             }
         }
+
         addEventForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const description = document.getElementById('eventName').value;
-            const endDateInput = document.getElementById('eventEndDate').value;
+            const endDateInputVal = endDateInput.value;
             const color = document.getElementById('eventColor').value;
+            const singleDay = singleDayCheckbox.checked;
             const event = { date: selectedDate, description, color };
-            if (endDateInput) {
-                const endDate = parseDateBrazilianFormat(endDateInput.split('-').reverse().join('/'));
+
+            if (!singleDay && endDateInputVal) {
+                const endDate = parseDateBrazilianFormat(endDateInputVal.split('-').reverse().join('/'));
                 let tempDate = parseDateBrazilianFormat(selectedDate);
                 while (tempDate <= endDate) {
                     const formattedDate = formatDate(tempDate.getDate(), tempDate.getMonth(), tempDate.getFullYear());
@@ -168,10 +191,12 @@
             } else {
                 events.push(event);
             }
+
             closeAddEventModal();
             loadCalendar();
             displayEvents(selectedDate);
         });
+
         prevMonthBtn.addEventListener('click', () => {
             currentDate.setMonth(currentDate.getMonth() - 1);
             loadCalendar();
@@ -180,6 +205,17 @@
             currentDate.setMonth(currentDate.getMonth() + 1);
             loadCalendar();
         });
+
+        singleDayCheckbox.addEventListener('change', () => {
+            if (singleDayCheckbox.checked) {
+                endDateInput.disabled = true;
+                endDateInput.classList.add('line-through', 'text-gray-400');
+            } else {
+                endDateInput.disabled = false;
+                endDateInput.classList.remove('line-through', 'text-gray-400');
+            }
+        });
+
         loadCalendar();
     </script>
 </body>
