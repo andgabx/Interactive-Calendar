@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendário Interativo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css">
+</head>
+<body class="flex items-center bg-slate-300 justify-center h-screen bg-gray-100">
+    <div class="w-full max-w-md p-4 bg-white rounded-lg shadow-lg">
+        <div class="flex items-center justify-between mb-4">
+            <button id="prevMonth" class="bg-blue-500 rounded-full px-2 text-lg font-bold text-white">
+                <i class="bi bi-arrow-left-short"></i>
+            </button>
+            <h2 id="monthYear" class="text-xl font-semibold"></h2>
+            <button id="nextMonth" class="bg-blue-500 rounded-full px-2 text-lg font-bold text-white">
+                <i class="bi bi-arrow-right-short"></i>
+            </button>
+        </div>
+        <div class="grid grid-cols-7 gap-2 text-center font-semibold">
+            <div>Dom</div>
+            <div>Seg</div>
+            <div>Ter</div>
+            <div>Qua</div>
+            <div>Qui</div>
+            <div>Sex</div>
+            <div>Sab</div>
+        </div>
+        <div id="calendarDays" class="grid grid-cols-7 mt-2 gap-1"></div>
+    </div>
+    <div id="eventModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-6 rounded-lg w-80">
+            <h2 class="text-lg font-semibold mb-4" id="modalDate">Dia</h2>
+            <div id="eventList" class="mb-4"></div>
+            <button onclick="openAddEventModal()" class="w-full bg-blue-500 text-white py-2 rounded-md mb-2">Adicionar Atividade</button>
+            <button onclick="closeModal()" class="w-full bg-gray-500 text-white py-2 rounded-md">Fechar</button>
+        </div>
+    </div>
+    <div id="addEventModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-6 rounded-lg w-80">
+            <h2 class="text-lg font-semibold mb-4">Adicionar Nova Atividade</h2>
+            <form id="addEventForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Nome da Atividade</label>
+                    <input type="text" id="eventName" class="w-full mt-1 p-2 border border-gray-300 rounded-md" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Data Final</label>
+                    <input type="date" id="eventEndDate" class="w-full mt-1 p-2 border border-gray-300 rounded-md">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Cor da Atividade</label>
+                    <select id="eventColor" class="w-full mt-1 p-2 border border-gray-300 rounded-md">
+                        <option value="#FF5733" style="color: #FF5733;">Vermelho</option>
+                        <option value="#28A745" style="color: #28A745;">Verde</option>
+                        <option value="#007BFF" style="color: #007BFF;">Azul</option>
+                        <option value="#FFC107" style="color: #FFC107;">Amarelo</option>
+                        <option value="#6F42C1" style="color: #6F42C1;">Roxo</option>
+                        <option value="#17A2B8" style="color: #17A2B8;">Ciano</option>
+                        <option value="#FD7E14" style="color: #FD7E14;">Laranja</option>
+                    </select>
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button type="button" onclick="closeAddEventModal()" class="bg-gray-500 text-white py-2 px-4 rounded-md">Cancelar</button>
+                    <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-md">Adicionar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+        const monthYearDisplay = document.getElementById('monthYear');
+        const prevMonthBtn = document.getElementById('prevMonth');
+        const nextMonthBtn = document.getElementById('nextMonth');
+        const calendarDaysContainer = document.getElementById('calendarDays');
+        const eventModal = document.getElementById('eventModal');
+        const addEventModal = document.getElementById('addEventModal');
+        const modalDateDisplay = document.getElementById('modalDate');
+        const eventList = document.getElementById('eventList');
+        const addEventForm = document.getElementById('addEventForm');
+        let currentDate = new Date();
+        let events = [];
+        let selectedDate = '';
+        function formatDate(day, month, year) {
+            const dayStr = day.toString().padStart(2, '0');
+            const monthStr = (month + 1).toString().padStart(2, '0');
+            return `${dayStr}/${monthStr}/${year}`;
+        }
+        function parseDateBrazilianFormat(dateString) {
+            const [day, month, year] = dateString.split('/').map(Number);
+            return new Date(year, month - 1, day, 12, 0, 0);
+        }
+        function loadCalendar() {
+            calendarDaysContainer.innerHTML = '';
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            monthYearDisplay.textContent = currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDay = firstDay.getDay();
+            for (let i = 0; i < startDay; i++) {
+                const emptyCell = document.createElement('div');
+                calendarDaysContainer.appendChild(emptyCell);
+            }
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const dayCell = document.createElement('div');
+                dayCell.classList.add('text-center', 'py-2', 'rounded-lg', 'cursor-pointer', 'relative');
+                const dayNumber = document.createElement('div');
+                dayNumber.textContent = day;
+                dayNumber.classList.add('font-bold');
+                dayCell.appendChild(dayNumber);
+                const date = formatDate(day, month, year);
+                dayCell.dataset.date = date;
+                dayCell.addEventListener('click', () => openModal(date));
+                const eventsForDay = events.filter(e => e.date === date);
+                eventsForDay.forEach(event => {
+                    const eventBar = document.createElement('div');
+                    eventBar.classList.add('h-1', 'mt-1', 'rounded');
+                    eventBar.style.backgroundColor = event.color;
+                    dayCell.appendChild(eventBar);
+                });
+                calendarDaysContainer.appendChild(dayCell);
+            }
+        }
+        function openModal(date) {
+            selectedDate = date;
+            modalDateDisplay.textContent = `Eventos para ${date}`;
+            displayEvents(date);
+            eventModal.classList.remove('hidden');
+        }
+        function closeModal() {
+            eventModal.classList.add('hidden');
+        }
+        function openAddEventModal() {
+            addEventModal.classList.remove('hidden');
+        }
+        function closeAddEventModal() {
+            addEventModal.classList.add('hidden');
+        }
+        function displayEvents(date) {
+            eventList.innerHTML = '';
+            const eventsForDate = events.filter(e => e.date === date);
+            if (eventsForDate.length === 0) {
+                eventList.innerHTML = '<p class="text-gray-500">Nenhum evento para este dia.</p>';
+            } else {
+                eventsForDate.forEach(event => {
+                    const eventItem = document.createElement('div');
+                    eventItem.textContent = event.description;
+                    eventItem.classList.add('bg-blue-100', 'p-2', 'rounded-md', 'mb-2');
+                    eventList.appendChild(eventItem);
+                });
+            }
+        }
+        addEventForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const description = document.getElementById('eventName').value;
+            const endDateInput = document.getElementById('eventEndDate').value;
+            const color = document.getElementById('eventColor').value;
+            const event = { date: selectedDate, description, color };
+            if (endDateInput) {
+                const endDate = parseDateBrazilianFormat(endDateInput.split('-').reverse().join('/'));
+                let tempDate = parseDateBrazilianFormat(selectedDate);
+                while (tempDate <= endDate) {
+                    const formattedDate = formatDate(tempDate.getDate(), tempDate.getMonth(), tempDate.getFullYear());
+                    events.push({ date: formattedDate, description, color });
+                    tempDate.setDate(tempDate.getDate() + 1);
+                }
+            } else {
+                events.push(event);
+            }
+            closeAddEventModal();
+            loadCalendar();
+            displayEvents(selectedDate);
+        });
+        prevMonthBtn.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            loadCalendar();
+        });
+        nextMonthBtn.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            loadCalendar();
+        });
+        loadCalendar();
+    </script>
+</body>
+</html>
