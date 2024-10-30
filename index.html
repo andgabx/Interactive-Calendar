@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css">
 </head>
-<body class="flex items-center bg-slate-300 justify-center h-screen bg-gray-100">
+<body class="flex items-center bg-slate-300 justify-center h-screen">
     <div class="w-full max-w-md p-4 bg-white rounded-lg shadow-lg">
         <div class="flex items-center justify-between mb-4">
             <button id="prevMonth" class="bg-blue-500 rounded-full px-2 text-lg font-bold text-white">
@@ -171,7 +171,7 @@
                 eventsForDate.forEach(event => {
                     const eventItem = document.createElement('div');
                     eventItem.textContent = event.description;
-                    eventItem.classList.add('bg-blue-100', 'p-2', 'rounded-md', 'mb-2');
+                    eventItem.classList.add('bg-blue-100', 'p-2', 'rounded-md', 'm-2');
                     eventList.appendChild(eventItem);
                 });
             }
@@ -206,6 +206,7 @@
             currentDate.setMonth(currentDate.getMonth() - 1);
             loadCalendar();
         });
+        
 
         nextMonthBtn.addEventListener('click', () => {
             currentDate.setMonth(currentDate.getMonth() + 1);
